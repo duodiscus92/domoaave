@@ -9,11 +9,11 @@
 #include <fcntl.h>
 #include <signal.h>
 //pour le debug
-#undef  DEBUG1
-#undef  DEBUG2
+#define  DEBUG1
+#define  DEBUG2
 
 // adresse IP et port MQTT du serveur Domoticz
-#define IP_DOMOTICZ  "192.168.1.49"
+#define IP_DOMOTICZ  "192.168.1.44"
 #define PORT_MQTT_DOMOTICZ 1884
 
 // tranches horaires
@@ -41,11 +41,11 @@
 #define ALIVE_PERIOD (3600)
 
 // tableau des idx des instruments Domoticz
-static  int tidx[8]={1, 2, 0, 0, 0, 0, 0, 0};
-static  int tidxHP[8]={3, 7, 0, 0, 0, 0, 0, 0};
-static  int tidxHC[8]={4, 6, 0, 0, 0, 0, 0, 0};
-static  int tidxHPeak[8]={5, 8, 0, 0, 0, 0, 0, 0};
-static  int tidxCTot[8]={9, 10, 0, 0, 0, 0, 0, 0};
+static  int tidx[8]={13, 18, 0, 0, 0, 0, 0, 0};
+static  int tidxHP[8]={15, 20, 0, 0, 0, 0, 0, 0};
+static  int tidxHC[8]={14, 19, 0, 0, 0, 0, 0, 0};
+static  int tidxHPeak[8]={16, 21, 0, 0, 0, 0, 0, 0};
+static  int tidxCTot[8]={17, 22, 0, 0, 0, 0, 0, 0};
 
 // dans ce tableau on cumule les couts
 static float tcouTotal[8] = {0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; 
@@ -238,7 +238,7 @@ int main (void)
     fprintf(stderr, "Impossible d'initialiser la librairie mosquitto\n");
     exit(1);
   }
-  if((mosq = mosquitto_new("capteur1", true, NULL)) == NULL) {
+  if((mosq = mosquitto_new("guillaumet", true, NULL)) == NULL) {
     fprintf(stderr, "Impossible de creer une nouveau client mosquitto\n");
     mosquitto_destroy(mosq);
     exit(1);
@@ -261,8 +261,8 @@ int main (void)
   // intialisation de la lib wiringPi
   wiringPiSetup () ;
   // installtion des gestionnaires d'interruption 
-  wiringPiISR (0, INT_EDGE_FALLING, &myInterrupt0) ;
-  wiringPiISR (1, INT_EDGE_FALLING, &myInterrupt1) ;
+  wiringPiISR (14, INT_EDGE_FALLING, &myInterrupt0) ;
+  wiringPiISR (21, INT_EDGE_FALLING, &myInterrupt1) ;
   wiringPiISR (2, INT_EDGE_FALLING, &myInterrupt2) ;
   wiringPiISR (3, INT_EDGE_FALLING, &myInterrupt3) ;
   wiringPiISR (4, INT_EDGE_FALLING, &myInterrupt4) ;
