@@ -9,8 +9,8 @@
 #include <fcntl.h>
 #include <signal.h>
 //pour le debug
-#define  DEBUG1
-#define  DEBUG2
+#undef  DEBUG1
+#undef  DEBUG2
 
 // adresse IP et port MQTT du serveur Domoticz
 #define IP_DOMOTICZ  "192.168.1.44"

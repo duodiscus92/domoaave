@@ -1,0 +1,144 @@
+{
+   "network" : {
+      "ip_domoticz": "192.168.1.44",
+      "timezone" : "Europe/Paris"
+   },
+
+   "mqtt" : {
+      "port_mqtt_domoticz" : 1884
+   },
+
+   "saison": {
+      "debut_ete" : 4,
+      "fin_été" : 10
+   },
+
+   "horaires" : {
+      "debut_hcreuses" : 22,
+      "fin_hcreuses" : 6,
+      "debut_hpeak_am" : 9,
+      "fin_hpeak_am" : 11,
+      "debut_hpeak_pm" : 18,
+      "fin_hpeak_pm" : 20
+   },
+
+   "tarifs" : {
+      "hp_ete" : 6.876,
+      "hc_ete" : 4.703,
+      "hp_hiver": 12.581,
+      "hc_hiver" : 9.025,
+      "hpeak" : 16.423,
+      "charges" : 0.076,
+      "tva" : 1.2
+    },
+
+   "clients" : {
+      "mermoz" : {
+         "idx" : {
+	    "PC1" : 1,
+	    "PC2" : 2,
+	    "PC3" : 0,
+	    "PC4" : 0,
+	    "PC5" : 0,
+	    "PC6" : 0,
+	    "PC7" : 0,
+	    "PC8" : 0
+	 },
+	 "idxhp" : {
+	    "PC1" : 3,
+	    "PC2" : 7,
+	    "PC3" : 0,
+	    "PC4" : 0,
+	    "PC5" : 0,
+	    "PC6" : 0,
+	    "PC7" : 0,
+	    "PC8" : 0
+         },
+	 "idxhc" : {
+	    "PC1" : 4,
+	    "PC2" : 6,
+	    "PC3" : 0,
+	    "PC4" : 0,
+	    "PC5" : 0,
+	    "PC6" : 0,
+	    "PC7" : 0,
+	    "PC8" : 0
+         },
+	 "idxhpeak" : {
+	    "PC1" : 5,
+	    "PC2" : 8,
+	    "PC3" : 0,
+	    "PC4" : 0,
+	    "PC5" : 0,
+	    "PC6" : 0,
+	    "PC7" : 0,
+	    "PC8" : 0
+         },
+	 "idxcout" : {
+	    "PC1" : 9,
+	    "PC2" : 10,
+	    "PC3" : 0,
+	    "PC4" : 0,
+	    "PC5" : 0,
+	    "PC6" : 0,
+	    "PC7" : 0,
+	    "PC8" : 0
+         }
+
+      },
+      "guillaumet" : {
+         "idx" : {
+	    "PC1" : 13,
+	    "PC2" : 18,
+	    "PC3" : 0,
+	    "PC4" : 0,
+	    "PC5" : 0,
+	    "PC6" : 0,
+	    "PC7" : 0,
+	    "PC8" : 0
+	 },
+	 "idxhp" : {
+	    "PC1" : 15,
+	    "PC2" : 20,
+	    "PC3" : 0,
+	    "PC4" : 0,
+	    "PC5" : 0,
+	    "PC6" : 0,
+	    "PC7" : 0,
+	    "PC8" : 0
+         },
+	 "idxhc" : {
+	    "PC1" : 14,
+	    "PC2" : 10,
+	    "PC3" : 0,
+	    "PC4" : 0,
+	    "PC5" : 0,
+	    "PC6" : 0,
+	    "PC7" : 0,
+	    "PC8" : 0
+         },
+	 "idxhpeak" : {
+	    "PC1" : 15,
+	    "PC2" : 21,
+	    "PC3" : 0,
+	    "PC4" : 0,
+	    "PC5" : 0,
+	    "PC6" : 0,
+	    "PC7" : 0,
+	    "PC8" : 0
+         },
+	 "idxcout" : {
+	    "PC1" : 17,
+	    "PC2" : 22,
+	    "PC3" : 0,
+	    "PC4" : 0,
+	    "PC5" : 0,
+	    "PC6" : 0,
+	    "PC7" : 0,
+	    "PC8" : 0
+         }
+
+      }
+   } 
+}
+
