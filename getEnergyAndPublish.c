@@ -41,11 +41,11 @@
 #define ALIVE_PERIOD (3600)
 
 // tableau des idx des instruments Domoticz
-static  int tidx[8]={13, 18, 0, 0, 0, 0, 0, 0};
-static  int tidxHP[8]={15, 20, 0, 0, 0, 0, 0, 0};
-static  int tidxHC[8]={14, 19, 0, 0, 0, 0, 0, 0};
-static  int tidxHPeak[8]={16, 21, 0, 0, 0, 0, 0, 0};
-static  int tidxCTot[8]={17, 22, 0, 0, 0, 0, 0, 0};
+static  int tidx[8]={1, 2, 0, 0, 0, 0, 0, 0};
+static  int tidxHP[8]={3, 7, 0, 0, 0, 0, 0, 0};
+static  int tidxHC[8]={4, 6, 0, 0, 0, 0, 0, 0};
+static  int tidxHPeak[8]={5, 8, 0, 0, 0, 0, 0, 0};
+static  int tidxCTot[8]={9, 10, 0, 0, 0, 0, 0};
 
 // dans ce tableau on cumule les couts
 static float tcouTotal[8] = {0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; 
@@ -54,6 +54,7 @@ static float tcouTotal[8] = {0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 static  char payload[500];
 
 // globalCounter and globa flag:
+
 //	Global variable to count interrupts
 //	Should be declared volatile to make sure the compiler doesn't cache it.
 //	Global flag pour le watchdog
@@ -238,11 +239,15 @@ int main (void)
     fprintf(stderr, "Impossible d'initialiser la librairie mosquitto\n");
     exit(1);
   }
-  if((mosq = mosquitto_new("guillaumet", true, NULL)) == NULL) {
+  if((mosq = mosquitto_new("mermoz", true, NULL)) == NULL) {
     fprintf(stderr, "Impossible de creer une nouveau client mosquitto\n");
     mosquitto_destroy(mosq);
     exit(1);
   }
+  else  {
+    fprintf(stderr, "Pointeur mosq = %x \n", (long) mosq);
+  }
+
   if(mosquitto_connect(mosq, IP_DOMOTICZ, PORT_MQTT_DOMOTICZ, 60) != MOSQ_ERR_SUCCESS){
     fprintf(stderr, "Impossible de se connecter au serveur Domoticz\n");
     mosquitto_destroy(mosq);
