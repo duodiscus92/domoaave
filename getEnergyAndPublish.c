@@ -1,4 +1,4 @@
-#include <stdio.h>
+/*#include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -8,6 +8,10 @@
 #include <time.h>
 #include <fcntl.h>
 #include <signal.h>
+*/
+#include "domoaave.h"
+
+/*
 //pour le debug
 #undef  DEBUG1
 #undef  DEBUG2
@@ -39,16 +43,17 @@
 
 //Nb de secondes entre deux signalement que toujours vivant
 #define ALIVE_PERIOD (3600)
+*/
 
 // tableau des idx des instruments Domoticz
-static  int tidx[8]={1, 2, 0, 0, 0, 0, 0, 0};
-static  int tidxHP[8]={3, 7, 0, 0, 0, 0, 0, 0};
-static  int tidxHC[8]={4, 6, 0, 0, 0, 0, 0, 0};
-static  int tidxHPeak[8]={5, 8, 0, 0, 0, 0, 0, 0};
-static  int tidxCTot[8]={9, 10, 0, 0, 0, 0, 0};
+static  int tidx[MAX_CP]={1, 2, 0, 0, 0, 0, 0, 0};
+static  int tidxHP[MAX_CP]={3, 7, 0, 0, 0, 0, 0, 0};
+static  int tidxHC[MAX_CP]={4, 6, 0, 0, 0, 0, 0, 0};
+static  int tidxHPeak[MAX_CP]={5, 8, 0, 0, 0, 0, 0, 0};
+static  int tidxCTot[MAX_CP]={9, 10, 0, 0, 0, 0, 0};
 
 // dans ce tableau on cumule les couts
-static float tcouTotal[8] = {0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; 
+static float tcouTotal[MAX_CP] = {0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; 
 
 // buffer pour les messages json
 static  char payload[500];
@@ -58,7 +63,7 @@ static  char payload[500];
 //	Global variable to count interrupts
 //	Should be declared volatile to make sure the compiler doesn't cache it.
 //	Global flag pour le watchdog
-static volatile int globalCounter [8];
+static volatile int globalCounter [MAX_CP];
 
 static float priceElectricity[][2] = {
 	// ETE
@@ -81,6 +86,42 @@ void myInterrupt4 (void) { ++globalCounter [4] ; }
 void myInterrupt5 (void) { ++globalCounter [5] ; }
 void myInterrupt6 (void) { ++globalCounter [6] ; }
 void myInterrupt7 (void) { ++globalCounter [7] ; }
+
+
+/*
+ *********************************************************************************
+ * fonction d'affichage des paramètres lus dans le fichier json de config
+ * utile essentiellement pour le debug
+ *********************************************************************************
+ */
+void print_json_config(void)
+{
+   fprintf(stderr, "Mes Idx total: ");
+   for (int i = 0; i< MAX_CP; i++)
+      fprintf(stderr, "%2d, ", tidx[i]);
+   fprintf(stderr, "\n");
+
+   fprintf(stderr, "Mes Idx heures pleines: ");
+   for (int i = 0; i< MAX_CP; i++)
+      fprintf(stderr, "%2d, ", tidxHP[i]);
+   fprintf(stderr, "\n");
+
+   fprintf(stderr, "Mes Idx heures creuses: ");
+   for (int i = 0; i< MAX_CP; i++)
+      fprintf(stderr, "%2d, ", tidxHC[i]);
+   fprintf(stderr, "\n");
+
+   fprintf(stderr, "Mes Idx heures de pointes: ");
+   for (int i = 0; i< MAX_CP; i++)
+      fprintf(stderr, "%2d, ", tidxHPeak[i]);
+   fprintf(stderr, "\n");
+
+   fprintf(stderr, "Mes Idx cout: ");
+   for (int i = 0; i< MAX_CP; i++)
+      fprintf(stderr, "%2d, ", tidxCTot[i]);
+   fprintf(stderr, "\n");
+}
+
 
 
 /*
@@ -196,7 +237,7 @@ void aLive(int pin)
    int i;
 
    fprintf(stderr, "\nHello World,toujours vivant !! \n");
-   for (i=0; i< 8 ; i++){
+   for (i=0; i< MAX_CP ; i++){
       if(tidx[pin] != 0){
         sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%d\" }\n",  tidx[pin], 0);
         mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
@@ -230,10 +271,28 @@ void aLive(int pin)
 int main (void)
 {
   int gotOne, pin, slice, fn;
-  int myCounter [8] ;
+  int myCounter [MAX_CP] ;
   float price;
   time_t now;
+  char *jsonText;
+  cJSON *root;
 
+  // lecture du fichier json de paramètres situé sur le serveur domoticz
+  jsonText = readJson(JSON_CONFIG_PATH);
+  //  on parse la chaine JSON 
+  if(!(root = cJSON_Parse(jsonText))){
+      fprintf(stderr, "Erreur parsing JSON\n");
+      free(jsonText);
+      exit(1);
+  }
+  // récupétation des idx de ce point de distribution
+  if(getJsonTidx(root, tidx, tidxHP, tidxHC, tidxHPeak, tidxCTot) == NULL) {
+      fprintf(stderr, "Impossible de récuérer les idx de ce point de distribution\n");
+      exit(1);
+  }
+  // affichage (pour le debug)
+  print_json_config();
+ 
   // initialisation de la librairie mosquitto
   if(mosquitto_lib_init() != MOSQ_ERR_SUCCESS){
     fprintf(stderr, "Impossible d'initialiser la librairie mosquitto\n");
@@ -258,7 +317,7 @@ int main (void)
   setenv("TZ", "Europe/Paris", 1);
   tzset();
 
-  for (pin = 0 ; pin < 8 ; ++pin){ 
+  for (pin = 0 ; pin < MAX_CP ; ++pin){ 
     globalCounter [pin] = myCounter [pin] = 0 ;
     aLive(pin);
   }
@@ -275,6 +334,7 @@ int main (void)
   wiringPiISR (6, INT_EDGE_FALLING, &myInterrupt6) ;
   wiringPiISR (7, INT_EDGE_FALLING, &myInterrupt7) ;
 
+  // l'acquisition des impulsions des compteurs d'énergie commence ici
   for (;;)
   {
     gotOne = 0 ;
@@ -285,12 +345,12 @@ int main (void)
       // signale a Domoticz toutes les heures que toujours en vie
       now = time(NULL);
       if ((now % ALIVE_PERIOD) == 0){
-        for (pin = 0 ; pin < 8 ; pin++)
+        for (pin = 0 ; pin < MAX_CP ; pin++)
 	  aLive(pin);
         delay(1000);
       }
 
-      for (pin = 0 ; pin < 8 ; ++pin)
+      for (pin = 0 ; pin < MAX_CP ; ++pin)
       {
 	if (globalCounter [pin] != myCounter [pin])
 	{
@@ -332,7 +392,7 @@ int main (void)
 	          // cout du kWh HT (compte tenu du la saison et de la tranche horaire
                   read(fn, tcouTotal, sizeof(tcouTotal));
 #ifdef DEBUG1
-		  for(int i=0; i<8;i++)
+		  for(int i=0; i<MAX_CP;i++)
 		    fprintf(stderr, "V(%d) = %8.4f\n", i+1, tcouTotal[i]);
 #endif
 	        }

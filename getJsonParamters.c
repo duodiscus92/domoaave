@@ -1,4 +1,4 @@
-#include <stdio.h>
+/*#include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -7,9 +7,13 @@
 #include <time.h>
 #include <fcntl.h>
 
-#include "cJSON.h"
+#include <cjson/cJSON.h>
 
-#define MAX_CP	8
+#define  STANDALONE 1
+
+#define  MAX_CP	8
+*/
+#include "domoaave.h"
 
 /* Lecture d'un fichier JSON */
 char *readJson(const char *filename)
@@ -117,7 +121,7 @@ cJSON *getJsonTidx(cJSON *root, int tidx[], int tidxhp[], int tidxhc[], int tidx
    return host;
 }
 
-
+#ifdef STANDALONE
 int main(void)
 {
    char *jsonText;
@@ -134,34 +138,35 @@ int main(void)
       exit(1);
    }
 
-   printf("IP Domoticz %s\n", getJsonIpDomoticz(root));
-   printf("Port MQTT Domoticz : %d\n", getJsonPortMQTT(root));
+   fprintf(stderr, "IP Domoticz %s\n", getJsonIpDomoticz(root));
+   fprintf(stderr, "Port MQTT Domoticz : %d\n", getJsonPortMQTT(root));
    if(getJsonTidx(root, tidx, tidxhp, tidxhc, tidxhpeak, tidxcout) != NULL) {
-      printf( "Mes Idx total: ");
+      fprintf(stderr, "Mes Idx total: ");
       for (int i = 0; i< MAX_CP; i++)
-         printf("%2d, ", tidx[i]);
-      printf("\n");
+         fprintf(stderr, "%2d, ", tidx[i]);
+      fprintf(stderr, "\n");
 
-      printf( "Mes Idx heures pleines: ");
+      fprintf(stderr, "Mes Idx heures pleines: ");
       for (int i = 0; i< MAX_CP; i++)
-         printf("%2d, ", tidxhp[i]);
-      printf("\n");
+         fprintf(stderr, "%2d, ", tidxhp[i]);
+      fprintf(stderr, "\n");
 
-      printf( "Mes Idx heures creuses: ");
+      fprintf(stderr, "Mes Idx heures creuses: ");
       for (int i = 0; i< MAX_CP; i++)
-         printf("%2d, ", tidxhc[i]);
-      printf("\n");
+         fprintf(stderr, "%2d, ", tidxhc[i]);
+      fprintf(stderr, "\n");
 
-      printf( "Mes Idx heures de pointes: ");
+      fprintf(stderr, "Mes Idx heures de pointes: ");
       for (int i = 0; i< MAX_CP; i++)
-         printf("%2d, ", tidxhpeak[i]);
-      printf("\n");
+         fprintf(stderr, "%2d, ", tidxhpeak[i]);
+      fprintf(stderr, "\n");
 
-      printf( "Mes Idx cout: ");
+      fprintf(stderr, "Mes Idx cout: ");
       for (int i = 0; i< MAX_CP; i++)
-         printf("%2d, ", tidxcout[i]);
-      printf("\n");
+         fprintf(stderr, "%2d, ", tidxcout[i]);
+      fprintf(stderr, "\n");
    }
    cJSON_Delete(root);
    free(jsonText);
 }
+#endif
