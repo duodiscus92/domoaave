@@ -276,6 +276,7 @@ int main (void)
   time_t now;
   char *jsonText;
   cJSON *root;
+  char hostname[32];
 
   // lecture du fichier json de paramètres situé sur le serveur domoticz
   jsonText = readJson(JSON_CONFIG_PATH);
@@ -298,8 +299,12 @@ int main (void)
     fprintf(stderr, "Impossible d'initialiser la librairie mosquitto\n");
     exit(1);
   }
-  if((mosq = mosquitto_new("mermoz", true, NULL)) == NULL) {
-    fprintf(stderr, "Impossible de creer une nouveau client mosquitto\n");
+
+  gethostname(hostname, sizeof(hostname));
+  fprintf(stderr, "%s\n", hostname);
+
+  if((mosq = mosquitto_new(hostname, true, NULL)) == NULL) {
+    fprintf(stderr, "Impossible de creer une nouveau client mosquitto pour %x\n", hostname);
     mosquitto_destroy(mosq);
     exit(1);
   }
@@ -436,5 +441,7 @@ int main (void)
   mosquitto_disconnect(mosq);
   mosquitto_destroy(mosq);
   mosquitto_lib_cleanup();
+  cJSON_Delete(root);
+  free(jsonText);
   return 0 ;
 }
