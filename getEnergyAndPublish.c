@@ -384,9 +384,9 @@ int main (void)
 	  // publication du coût total
 /**/
           // persister cout total
-          if((fn = open("totalCost.data", O_RDWR | O_CREAT | O_EXCL, 0644)) == -1){
+          if((fn = open(TOTAL_COST_PATH, O_RDWR | O_CREAT | O_EXCL, 0644)) == -1){
 	     if(errno==EEXIST){
-		if((fn = open("totalCost.data", O_RDWR)) == -1){
+		if((fn = open(TOTAL_COST_PATH, O_RDWR)) == -1){
                   fprintf(stderr, "Impossible d'ouvrir ou creer fichier totalCost.data\n");
                   exit(1);
 		}

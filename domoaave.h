@@ -13,7 +13,7 @@
 #include <mosquitto.h>
 // pour cjson
 #include <cjson/cJSON.h>
-#define JSON_CONFIG_PATH "/home/jehrlich/domoaave/config/client.config.json"
+#define JSON_CONFIG_PATH "client.config.json"
 
 #undef  STANDALONE 
 
@@ -51,6 +51,9 @@
 
 // nombre max de compteurs d'énergie par points de distribution
 #define  MAX_CP	8
+
+//fichier contenant les couts totaux pour repartir correctement en cas de coupure secteur
+#define TOTAL_COST_PATH "totalCost.data"
 
 // lecture d'un fichier json de paramètres
 extern char *readJson(const char *filename);
