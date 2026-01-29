@@ -275,6 +275,7 @@ int main (void)
   float price;
   time_t now;
   char *jsonText;
+  const char *ip;
   cJSON *root;
   char hostname[32];
 
@@ -293,7 +294,15 @@ int main (void)
   }
   // affichage (pour le debug)
   print_json_config();
- 
+
+  // récupération de l'ip Domoticz en fonction du SSID (Buno  ou Montrouge)
+  ip = get_domoticz_host();
+  if (!ip) {
+      fprintf(stderr, "Pas d'IP Domoticz\n");
+      exit(1);
+  }
+  fprintf(stderr, "Detecté  IP Domoticz = %s\n", ip);
+
   // initialisation de la librairie mosquitto
   if(mosquitto_lib_init() != MOSQ_ERR_SUCCESS){
     fprintf(stderr, "Impossible d'initialiser la librairie mosquitto\n");
@@ -312,7 +321,8 @@ int main (void)
     fprintf(stderr, "Pointeur mosq = %x \n", (long) mosq);
   }
 
-  if(mosquitto_connect(mosq, IP_DOMOTICZ, PORT_MQTT_DOMOTICZ, 60) != MOSQ_ERR_SUCCESS){
+  //if(mosquitto_connect(mosq, IP_DOMOTICZ, PORT_MQTT_DOMOTICZ, 60) != MOSQ_ERR_SUCCESS){
+  if(mosquitto_connect(mosq, ip, PORT_MQTT_DOMOTICZ, 60) != MOSQ_ERR_SUCCESS){
     fprintf(stderr, "Impossible de se connecter au serveur Domoticz\n");
     mosquitto_destroy(mosq);
     exit(1);

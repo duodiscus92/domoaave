@@ -6,6 +6,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <stdbool.h>
 
 // pour WiringPi
 #include <wiringPi.h>
@@ -22,7 +23,8 @@
 #undef  DEBUG2
 
 // adresse IP et port MQTT du serveur Domoticz
-#define IP_DOMOTICZ  "192.168.1.44"
+#define IP_DOMOTICZ_AAVEIOT  "192.168.7.156"	// à Buno
+#define IP_DOMOTICZ_SFR62E8  "192.168.1.44"	// à Montrouge
 #define PORT_MQTT_DOMOTICZ 1884
 
 // tranches horaires
@@ -63,4 +65,7 @@ extern char *getJsonIpDomoticz(cJSON *root);
 extern int getJsonPortMQTT(cJSON *root);
 // lire les idx Domoticz ratttachés au point de distribution dont le nom est hostnamme
 extern cJSON *getJsonTidx(cJSON *root, int tidx[], int tidxhp[], int tidxhc[], int tidxhpeak[], int tidxcout[]);
+
+// obtenir l'ip domoticz en fonction du  SSID Buno ou Montrouge
+extern const char *get_domoticz_host(void);
 

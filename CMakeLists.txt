@@ -5,6 +5,7 @@ project(domoaave_client C)
 add_executable(domoaave_client
     getEnergyAndPublish.c
     getJsonParamters.c
+    getIPDomoticzServer.c
 )
 
 #librairies
