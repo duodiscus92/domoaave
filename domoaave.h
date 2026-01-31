@@ -24,7 +24,8 @@
 
 // adresse IP et port MQTT du serveur Domoticz
 #define IP_DOMOTICZ_AAVEIOT  "192.168.7.156"	// à Buno
-#define IP_DOMOTICZ_SFR62E8  "192.168.1.44"	// à Montrouge
+#define IP_DOMOTICZ_SFR62E8  "192.168.1.44"	// à Montrouge Livebox
+#define IP_DOMOTICZ_PIXEL6A  "10.83.34.60"	// sur partage réseau Pixel 6a
 #define PORT_MQTT_DOMOTICZ 1884
 
 // tranches horaires
@@ -67,5 +68,5 @@ extern int getJsonPortMQTT(cJSON *root);
 extern cJSON *getJsonTidx(cJSON *root, int tidx[], int tidxhp[], int tidxhc[], int tidxhpeak[], int tidxcout[]);
 
 // obtenir l'ip domoticz en fonction du  SSID Buno ou Montrouge
-extern const char *get_domoticz_host(void);
-
+//extern const char *get_domoticz_host(void);
+extern const char *getIpDomoticz(cJSON *root);

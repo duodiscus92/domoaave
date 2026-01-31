@@ -1,18 +1,3 @@
-/*#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <wiringPi.h>
-#include <unistd.h>
-#include <time.h>
-#include <fcntl.h>
-
-#include <cjson/cJSON.h>
-
-#define  STANDALONE 1
-
-#define  MAX_CP	8
-*/
 #include "domoaave.h"
 
 /* Lecture d'un fichier JSON */

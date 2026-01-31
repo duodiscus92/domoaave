@@ -11,40 +11,6 @@
 */
 #include "domoaave.h"
 
-/*
-//pour le debug
-#undef  DEBUG1
-#undef  DEBUG2
-
-// adresse IP et port MQTT du serveur Domoticz
-#define IP_DOMOTICZ  "192.168.1.44"
-#define PORT_MQTT_DOMOTICZ 1884
-
-// tranches horaires
-//heeures creuses
-#define DEB_HC 22
-#define FIN_HC 6
-//heures de pointe 1ere tranche horaire
-#define DEB_HPEAK1 9
-#define FIN_HPEAK1 11
-//heurss de pointe 2ieme tranche horaire
-#define DEB_HPEAK2 18
-#define FIN_HPEAK2 20
-//tout le reste est en heures creuses
-
-// tarifs 2025 HT EDF du PACK PERFORMANCE en cts d'euros
-#define PRIX_HP_ETE 6.876
-#define PRIX_HC_ETE 4.703
-#define PRIX_HP_HIVER 12.581
-#define PRIX_HC_HIVER 9.025
-#define PRIX_HPEAK 16.423
-#define TVA	(1.2)
-#define CHARGES (0.076) // Montant par kWh Accise, CTA, abonnement, options etc 
-
-//Nb de secondes entre deux signalement que toujours vivant
-#define ALIVE_PERIOD (3600)
-*/
-
 // tableau des idx des instruments Domoticz
 static  int tidx[MAX_CP]={1, 2, 0, 0, 0, 0, 0, 0};
 static  int tidxHP[MAX_CP]={3, 7, 0, 0, 0, 0, 0, 0};
@@ -296,7 +262,9 @@ int main (void)
   print_json_config();
 
   // récupération de l'ip Domoticz en fonction du SSID (Buno  ou Montrouge)
-  ip = get_domoticz_host();
+
+  ip = getIpDomoticz(root);
+  //ip = get_domoticz_host();
   if (!ip) {
       fprintf(stderr, "Pas d'IP Domoticz\n");
       exit(1);
