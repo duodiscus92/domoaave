@@ -1,0 +1,10 @@
+# Logs
+logs/*.log
+logs/**
+
+# Build artifacts
+build/
+*.o
+
+# Runtime data
+*.data
