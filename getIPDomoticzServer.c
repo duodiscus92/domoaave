@@ -90,7 +90,7 @@ const char *getIpDomoticz(cJSON *root)
       const char *json_ip   = cJSON_GetObjectItem(entry, "ip")->valuestring;
 
       if (strcmp(ssid, json_ssid) == 0) {
-         fprintf(stderr, "SSID reconnu, IP Domoticz = %s\n", json_ip);
+         fprintf(stderr, "IP Domoticz = %s\n", json_ip);
          strncpy(ip, json_ip, sizeof(ip));
          return ip;
       }

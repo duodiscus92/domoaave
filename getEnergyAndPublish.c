@@ -11,6 +11,9 @@
 */
 #include "domoaave.h"
 
+//iadresse IP du serveur Domotciz
+const char *IpDomoticz;
+
 // tableau des idx des instruments Domoticz
 static  int tidx[MAX_CP]={1, 2, 0, 0, 0, 0, 0, 0};
 static  int tidxHP[MAX_CP]={3, 7, 0, 0, 0, 0, 0, 0};
@@ -202,7 +205,7 @@ void aLive(int pin)
 {
    int i;
 
-   fprintf(stderr, "\nHello World,toujours vivant !! \n");
+   //fprintf(stderr, "\nHello World,toujours vivant !! \n");
    for (i=0; i< MAX_CP ; i++){
       if(tidx[pin] != 0){
         sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%d\" }\n",  tidx[pin], 0);
@@ -230,6 +233,78 @@ void aLive(int pin)
 
 /*
  *********************************************************************************
+ * fonction qui indique s'il est minuit et 10 minutes
+ *
+ *********************************************************************************
+ */
+int check_minuit_et_10(void)
+{
+    static int last_run_day = -1;
+
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+
+    int today = (t->tm_year + 1900) * 10000 +
+                (t->tm_mon + 1) * 100 +
+                t->tm_mday;
+
+    /* après 00:10 */
+    if (t->tm_hour == 0 && t->tm_min >= 10) {
+        if (last_run_day != today) {
+            last_run_day = today;
+	    fprintf(stderr, "Il est minuit et 10 minutes, Dr Schweitzer.\n");
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/*
+ *********************************************************************************
+ * lecture fichier json et initialisation ou mise à jour des parametres
+ *********************************************************************************
+ */
+void IntitOrUpdateParametres(void)
+{
+  char *jsonText;
+  cJSON *root;
+
+  fprintf(stderr, "Initialisation ou mise à jour des paramètres Json\n");
+
+  // lecture du fichier json de paramètres situé sur le serveur domoticz
+  jsonText = readJson(JSON_CONFIG_PATH);
+
+  //  on parse la chaine JSON 
+  if(!(root = cJSON_Parse(jsonText))){
+      fprintf(stderr, "Erreur parsing JSON\n");
+      free(jsonText);
+      exit(1);
+  }
+  // récupétation des idx de ce point de distribution
+  if(getJsonTidx(root, tidx, tidxHP, tidxHC, tidxHPeak, tidxCTot) == NULL) {
+      fprintf(stderr, "Impossible de récuérer les idx de ce point de distribution\n");
+      exit(1);
+  }
+  // affichage (pour le debug)
+  print_json_config();
+
+
+  // récupération de l'ip Domoticz en fonction du SSID (Buno  ou Montrouge)
+  IpDomoticz = getIpDomoticz(root);
+
+  if (!IpDomoticz) {
+      fprintf(stderr, "Pas d'IP Domoticz\n");
+      exit(1);
+  }
+  //fprintf(stderr, "Detecté  IP Domoticz = %s\n", IpDomoticz);
+
+  cJSON_Delete(root);
+  free(jsonText);
+}
+
+
+/*
+ *********************************************************************************
  * main
  *********************************************************************************
  */
@@ -240,11 +315,15 @@ int main (void)
   int myCounter [MAX_CP] ;
   float price;
   time_t now;
-  char *jsonText;
-  const char *ip;
-  cJSON *root;
+  //char *jsonText;
+  //const char *IpDomoticz;
+  //cJSON *root;
   char hostname[32];
 
+  // initialisation des paramètres Json
+  IntitOrUpdateParametres();
+
+  /*
   // lecture du fichier json de paramètres situé sur le serveur domoticz
   jsonText = readJson(JSON_CONFIG_PATH);
   //  on parse la chaine JSON 
@@ -262,14 +341,14 @@ int main (void)
   print_json_config();
 
   // récupération de l'ip Domoticz en fonction du SSID (Buno  ou Montrouge)
-
-  ip = getIpDomoticz(root);
+  IpDomoticz = getIpDomoticz(root);
   //ip = get_domoticz_host();
-  if (!ip) {
+  if (!IpDomoticz) {
       fprintf(stderr, "Pas d'IP Domoticz\n");
       exit(1);
   }
-  fprintf(stderr, "Detecté  IP Domoticz = %s\n", ip);
+  fprintf(stderr, "Detecté  IP Domoticz = %s\n", IpDomoticz);
+  */
 
   // initialisation de la librairie mosquitto
   if(mosquitto_lib_init() != MOSQ_ERR_SUCCESS){
@@ -290,7 +369,7 @@ int main (void)
   }
 
   //if(mosquitto_connect(mosq, IP_DOMOTICZ, PORT_MQTT_DOMOTICZ, 60) != MOSQ_ERR_SUCCESS){
-  if(mosquitto_connect(mosq, ip, PORT_MQTT_DOMOTICZ, 60) != MOSQ_ERR_SUCCESS){
+  if(mosquitto_connect(mosq, IpDomoticz, PORT_MQTT_DOMOTICZ, 60) != MOSQ_ERR_SUCCESS){
     fprintf(stderr, "Impossible de se connecter au serveur Domoticz\n");
     mosquitto_destroy(mosq);
     exit(1);
@@ -300,6 +379,7 @@ int main (void)
   setenv("TZ", "Europe/Paris", 1);
   tzset();
 
+  fprintf(stderr, "\nHello World,toujours vivant !! \n");
   for (pin = 0 ; pin < MAX_CP ; ++pin){ 
     globalCounter [pin] = myCounter [pin] = 0 ;
     aLive(pin);
@@ -328,6 +408,7 @@ int main (void)
       // signale a Domoticz toutes les heures que toujours en vie
       now = time(NULL);
       if ((now % ALIVE_PERIOD) == 0){
+        fprintf(stderr, "\nHello World,toujours vivant !! \n");
         for (pin = 0 ; pin < MAX_CP ; pin++)
 	  aLive(pin);
         delay(1000);
@@ -342,7 +423,7 @@ int main (void)
 #ifdef DEBUG2
 	  fprintf(stderr, payload);
 #else
-	  fprintf(stderr,"."); fflush(stderr);
+	  //fprintf(stderr,"."); fflush(stderr);
 #endif
 	  mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
 	  //delay(1000); // pas certain que ce soit necessaire
@@ -415,11 +496,17 @@ int main (void)
       if (gotOne != 0)
 	break ;
     }
+
+    // si c'est minuit et 10 minutes on met à jout les paramètres
+    if (check_minuit_et_10()) 
+       IntitOrUpdateParametres();
+
   }
+
   mosquitto_disconnect(mosq);
   mosquitto_destroy(mosq);
   mosquitto_lib_cleanup();
-  cJSON_Delete(root);
-  free(jsonText);
+  //cJSON_Delete(root);
+  //free(jsonText);
   return 0 ;
 }
