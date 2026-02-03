@@ -473,6 +473,7 @@ static void initMosquitto(void)
  */
 int main (void)
 {
+  int ndot = 0;
   char hostname[32];
   time_t now;
 
@@ -516,8 +517,13 @@ int main (void)
     if (isMidnightAndTen())
       initOrUpdateParametres();
 
-    // fréquence  boucle 0,5 Hz suffit largement
+    // fréquence  boucle 5 Hz suffit largement
     fprintf(stderr, ".");
+    if(++ndot % 100 == 0) {
+       fprintf(stderr, "\n");
+       ndot = 0; 
+    }
+
     delay(2000);
   }
 
