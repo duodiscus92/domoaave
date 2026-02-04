@@ -476,6 +476,7 @@ int main (void)
   int ndot = 0;
   char hostname[32];
   time_t now;
+  static time_t last_alive = 0;
 
   // initialisation des paramètres Json
   // cette fonction devra évolurr car actuellement trop de paramètres sont en dur
@@ -503,12 +504,23 @@ int main (void)
     // cela évite que les devices Domoticz passent en rouge si aucune impulsion n'est émise par les energie-metres
     // signale a Domoticz toutes les heures que toujours en vie
     now = time(NULL);
+  
+    if (now - last_alive >= ALIVE_PERIOD) {
+       fprintf(stderr, "\nmain : Hello World, toujours vivant !!\n");
+       for (int i = 0; i < MAX_CP; i++)
+          aLive(i);
+
+       last_alive = now;
+    }
+
+    /*
     if ((now % ALIVE_PERIOD) == 0){
       fprintf(stderr, "\nmain : Hello World,toujours vivant !! \n");
       for (int i = 0 ; i < MAX_CP ; i++)
 	 aLive(i);
       // delay(1000);
     }
+    */
 
     // tout se passe dans cette fonction
     processCompteurs();
