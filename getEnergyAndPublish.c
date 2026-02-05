@@ -1,14 +1,3 @@
-/*#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <wiringPi.h>
-#include <mosquitto.h>
-#include <unistd.h>
-#include <time.h>
-#include <fcntl.h>
-#include <signal.h>
-*/
 #include "domoaave.h"
 
 //iadresse IP du serveur Domotciz
@@ -464,7 +453,16 @@ static void initMosquitto(void)
   }
 }
 
-
+/*
+ *********************************************************************************
+ * interrupt handler du signal (sigint, sigterm)
+ *********************************************************************************
+ */
+volatile sig_atomic_t running = 1;
+void  handleSignal(int sig)
+{
+   running = 0;
+}
 
 /*
  *********************************************************************************
@@ -478,8 +476,19 @@ int main (void)
   char hostname[32];
   time_t now;
   struct tm *tm;
+  struct sigaction sa;
 
-  // initialisation des paramètres Json
+  // installation handler signaux
+  sa.sa_handler = handleSignal;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = 0;
+
+  sigaction(SIGTERM, &sa, NULL);  // systemctl stop
+  sigaction(SIGINT,  &sa, NULL);  // Ctrl-C
+  sigaction(SIGQUIT, &sa, NULL);
+
+
+// initialisation des paramètres Json
   // cette fonction devra évolurr car actuellement trop de paramètres sont en dur
   initOrUpdateParametres();
 
@@ -500,7 +509,7 @@ int main (void)
   }
 
   // boucle d'acqusition
-  for (;;) {
+  while (running) {
     // toutes les heures on envoie un message au serveur pour signaler qu'on fonctionne toujours
     // cela évite que les devices Domoticz passent en rouge si aucune impulsion n'est émise par les energie-metres
     // signale a Domoticz toutes les heures que toujours en vie
@@ -512,15 +521,6 @@ int main (void)
        for (int i = 0; i < MAX_CP; i++)
           aLive(i);
     }
-
-    /*
-    if ((now % ALIVE_PERIOD) == 0){
-      fprintf(stderr, "\nmain : Hello World,toujours vivant !! \n");
-      for (int i = 0 ; i < MAX_CP ; i++)
-	 aLive(i);
-      // delay(1000);
-    }
-    */
 
     // tout se passe dans cette fonction
     processCompteurs();
@@ -538,6 +538,12 @@ int main (void)
 
     delay(2000);
   }
+
+  // on arrive  sur sigint, sigterm  ou sigquit
+  fprintf(stderr, "\nArrêt demandé, nettoyage en cours...\n");
+
+  /* GPIO / wiringPi */
+  //wiringPiISRStop();   // ou équivalent si utilisé
 
   //cloturer Mosquitto
   mosquitto_disconnect(mosq);

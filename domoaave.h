@@ -6,6 +6,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 
 // pour WiringPi
