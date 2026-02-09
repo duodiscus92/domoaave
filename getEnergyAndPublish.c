@@ -301,7 +301,12 @@ void initOrUpdateParametres(void)
  */
 static void initCompteurs(void)
 {
-    wiringPiSetup();
+    //wiringPiSetup(); obsolète et sujet à problèmes
+    if (wiringPiSetupGpio() < 0) {
+        fprintf(stderr, "initCompteurs : wiringPiSetupGpio failed");
+        exit(1);
+    }
+
 
     for (int i = 0; i < MAX_CP; i++) {
         compteurs[i].pulses = 0;
@@ -310,14 +315,18 @@ static void initCompteurs(void)
         //pullUpDnControl(compteurs[i].gpio, PUD_UP);
     }
 
-    wiringPiISR (14, INT_EDGE_FALLING, &isr_0) ;
-    wiringPiISR (21, INT_EDGE_FALLING, &isr_1) ;
-    wiringPiISR (2,  INT_EDGE_FALLING, &isr_2) ;
-    wiringPiISR (3,  INT_EDGE_FALLING, &isr_3) ;
-    wiringPiISR (4,  INT_EDGE_FALLING, &isr_4) ;
-    wiringPiISR (5,  INT_EDGE_FALLING, &isr_5) ;
-    wiringPiISR (6,  INT_EDGE_FALLING, &isr_6) ;
-    wiringPiISR (7,  INT_EDGE_FALLING, &isr_7) ;
+    //wiringPiISR (14, INT_EDGE_FALLING, &isr_0) ; obsolete
+    //wiringPiISR (21, INT_EDGE_FALLING, &isr_1) ; obsolete
+    wiringPiISR (11, INT_EDGE_FALLING, &isr_0) ;
+    wiringPiISR (5,  INT_EDGE_FALLING, &isr_1) ;
+    /* pas utilisés pour le moment
+    wiringPiISR (0,  INT_EDGE_FALLING, &isr_2) ;
+    wiringPiISR (0,  INT_EDGE_FALLING, &isr_3) ;
+    wiringPiISR (0,  INT_EDGE_FALLING, &isr_4) ;
+    wiringPiISR (0,  INT_EDGE_FALLING, &isr_5) ;
+    wiringPiISR (0,  INT_EDGE_FALLING, &isr_6) ;
+    wiringPiISR (0,  INT_EDGE_FALLING, &isr_7) ;
+    */
 }
 
 /*
