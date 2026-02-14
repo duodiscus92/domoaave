@@ -11,7 +11,10 @@ add_executable(domoaave_client
 #librairies
 target_link_libraries(domoaave_client
     mosquitto
-    wiringPi
+#    wiringPi
+    pigpio
+    pthread
+    rt
     cjson
 )
 

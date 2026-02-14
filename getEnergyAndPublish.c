@@ -1,5 +1,12 @@
 #include "domoaave.h"
 
+#define WIRINGPI 	0
+#define PIGPIO 		1-WIRINGPI
+
+#if PIGPIO == 1
+#include <pigpio.h>
+#endif
+
 //iadresse IP du serveur Domotciz
 const char *IpDomoticz;
 
@@ -38,11 +45,17 @@ typedef struct {
 static compteur_t compteurs[MAX_CP];
 static int nb_compteurs = 0;
 
+#if PIGPIO == 1
+unsigned char tgpio[] = {11, 9, 10, 22, 17, 4, 99, 5};
+unsigned char tindex[] = {0, 1, 2, 3, 4, 5, 6, 7};
+#endif
+
 /*
  *********************************************************************************
  * interrupt handler : il incrémente son compteur
  *********************************************************************************
  */
+#if WIRINGPI == 1
 static void isr_0(void) { compteurs[0].pulses++; }
 static void isr_1(void) { compteurs[1].pulses++; }
 static void isr_2(void) { compteurs[2].pulses++; }
@@ -51,7 +64,28 @@ static void isr_4(void) { compteurs[4].pulses++; }
 static void isr_5(void) { compteurs[5].pulses++; }
 static void isr_6(void) { compteurs[6].pulses++; }
 static void isr_7(void) { compteurs[7].pulses++; }
+#endif
 
+#if PIGPIO == 1
+/* Callback pigpio */
+void alert_callback(int gpio,
+                    int level,
+                    unsigned int tick,
+                    void *userdata)
+{
+    unsigned char *i = (unsigned char*) userdata;
+
+    if (level == FALLING_EDGE) {
+        if (*i < 0 || *i >= 8){
+           fprintf(stderr, "Erreur : IRQ d'origine inconnue\n");
+           exit(1);
+        }
+        compteurs[*i].pulses++;
+        //printf("ac : IRQ on GPIO %d -> pulses[%u] = %d\n", gpio, *i, pulses[*i]>
+        //fflush(stdout);
+    }
+}
+#endif
 /*
  *********************************************************************************
  * fonction d'affichage des paramètres lus dans le fichier json de config
@@ -301,20 +335,37 @@ void initOrUpdateParametres(void)
  */
 static void initCompteurs(void)
 {
-    //wiringPiSetup(); obsolète et sujet à problèmes
+#if WIRINGPI == 1
     if (wiringPiSetupGpio() < 0) {
         fprintf(stderr, "initCompteurs : wiringPiSetupGpio failed");
         exit(1);
     }
+#endif
+#if PIGPIO  == 1
+    int pi, /*bcm,*/ i;
+    unsigned char bcm;
 
-
+    /* Connexion au daemon pigpiod */
+    pi = gpioInitialise();
+    if (pi < 0) {
+        fprintf(stderr, "initCompteurs : pigpio_start failed\n");
+        exit(1);
+    }
+    fprintf(stderr, "initcompteurs : pigpio connected (pi=%d)\n", pi);
+#endif
     for (int i = 0; i < MAX_CP; i++) {
         compteurs[i].pulses = 0;
         compteurs[i].pulses_last = 0;
-        //pinMode(compteurs[i].gpio, INPUT);
-        //pullUpDnControl(compteurs[i].gpio, PUD_UP);
+#if PIGPIO == 1
+        if ((bcm = tgpio[i]) == 99)
+           continue;
+        gpioSetMode(bcm, PI_INPUT);
+        gpioSetPullUpDown(bcm, PI_PUD_OFF);
+        gpioGlitchFilter(bcm, 5000);   // 5000 µs = 5 ms
+        gpioSetAlertFuncEx(bcm, alert_callback, &tindex[i]);
+#endif
     }
-
+#if WIRINGPI == 1
     //wiringPiISR (14, INT_EDGE_FALLING, &isr_0) ; obsolete
     //wiringPiISR (21, INT_EDGE_FALLING, &isr_1) ; obsolete
     wiringPiISR (11, INT_EDGE_FALLING, &isr_0) ;
@@ -327,6 +378,7 @@ static void initCompteurs(void)
     wiringPiISR (0,  INT_EDGE_FALLING, &isr_6) ;
     wiringPiISR (0,  INT_EDGE_FALLING, &isr_7) ;
     */
+#endif
 }
 
 /*
@@ -544,15 +596,26 @@ int main (void)
        fprintf(stderr, "\n");
        fflush(stderr);
     }
-
+#if WIRINGPI == 1
     delay(2000);
+#endif
+#if PIGPIO == 1
+    sleep(2);
+#endif
   }
 
   // on arrive  sur sigint, sigterm  ou sigquit
   fprintf(stderr, "\nArrêt demandé, nettoyage en cours...\n");
 
+#if WIRINGPI == 1
   /* GPIO / wiringPi */
   //wiringPiISRStop();   // ou équivalent si utilisé
+#endif
+#if PIGPIO == 1
+    gpioTerminate();
+    return 0;
+#endif
+    return 0;
 
   //cloturer Mosquitto
   mosquitto_disconnect(mosq);
