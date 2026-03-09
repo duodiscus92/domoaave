@@ -7,6 +7,8 @@
 #include <pigpio.h>
 #endif
 
+extern void mqttPublish(const char *topic, const char *msg);
+
 //iadresse IP du serveur Domotciz
 const char *IpDomoticz;
 
@@ -231,27 +233,32 @@ void aLive(int compteur)
       if(tidx[compteur] != 0){
         sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%d\" }\n",  tidx[compteur], 0);
         fprintf(stderr, "aLive : %s", payload);
-        mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+        //mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+        mqttPublish("domoticz/in",payload);
       }
       if(tidxHP[compteur] != 0){
         sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%d\" }\n",  tidxHP[compteur], 0);
         fprintf(stderr, "aLive : %s", payload);
-        mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+        //mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+        mqttPublish("domoticz/in",payload);
       }
       if(tidxHC[compteur] != 0){
         sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%d\" }\n",  tidxHC[compteur], 0);
         fprintf(stderr, "aLive : %s", payload);
-        mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+        //mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+        mqttPublish("domoticz/in",payload);
       }
       if(tidxHPeak[compteur] != 0){
         sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%d\" }\n",  tidxHPeak[compteur], 0);
         fprintf(stderr, "aLive : %s", payload);
-        mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+        //mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+        mqttPublish("domoticz/in",payload);
       }
       if(tidxCTot[compteur] != 0){
         sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%8.3f\" }\n",  tidxCTot[compteur], tcouTotal[compteur]*TVA);
         fprintf(stderr, "aLive : %s", payload);
-        mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+        //mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+        mqttPublish("domoticz/in",payload);
       }
    //}
 }
@@ -393,8 +400,8 @@ static void getPublishEnergy(int compteur)
 
    // publication energie gobale
    sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%d\" }\n",  tidx[compteur], 1);
-   mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
-
+   //mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+   mqttPublish("domoticz/in",payload);
    if((slice = hourSlice()) == hp)
       // publication energie heure pleine
       sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%d\" }\n",  tidxHP[compteur], 1);
@@ -404,7 +411,8 @@ static void getPublishEnergy(int compteur)
    else
       // publication energie heure pointe
       sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%d\" }\n",  tidxHPeak[compteur], 1);
-   mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+   //mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+   mqttPublish("domoticz/in",payload);
 
 }
 /*
@@ -447,7 +455,8 @@ static void getPublishPersistTotalCost(int compteur)
   //fprintf(stderr, "getPublishPersistTotalCost ; Prix du kwh HT en cts € %8.3f\n", price);
   sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%8.3f\" }\n",  tidxCTot[compteur], tcouTotal[compteur]*TVA);
   //fprintf(stderr, " getPublishPersistTotalCost : %s", payload);
-  mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+  //mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+  mqttPublish("domoticz/in",payload);
   // on sauvegarde le coût total actualisé
   //fprintf(stderr,"getPublishPersistTotalCost : Sauvegarde totalCost.data avec valeurs actualisées\n");
   write(fn, tcouTotal, sizeof(tcouTotal));
@@ -506,13 +515,36 @@ static void initMosquitto(void)
     fprintf(stderr, "initMosquitto : Pointeur mosq = %x \n", (long) mosq);
   }
 
+  // reconnection automatique (recommandé par Chatgpt pour faire face à perte du Wifi)
+  mosquitto_reconnect_delay_set(mosq,2,10,true);
+
   //connection au serveur domoticz
   if(mosquitto_connect(mosq, IpDomoticz, PORT_MQTT_DOMOTICZ, 60) != MOSQ_ERR_SUCCESS){
     fprintf(stderr, "initMosquitto : Impossible de se connecter au serveur Domoticz\n");
     mosquitto_destroy(mosq);
     exit(1);
   }
+
+  // boucle reseau interne (recommandé par Chatgpt pour faire face à perte du Wifi)
+  mosquitto_loop_start(mosq);
 }
+
+/*
+ *********************************************************************************
+ * publication par  MQTT
+ *********************************************************************************
+ */
+void mqttPublish(const char *topic, const char *msg)
+{
+    int rc;
+
+    rc = mosquitto_publish(mosq, NULL, topic,strlen(msg), msg, 0, false);
+
+    if(rc != MOSQ_ERR_SUCCESS){
+        fprintf(stderr,"mqttPublish : erreur %d\n",rc);
+        mosquitto_reconnect(mosq);
+    }
+} 
 
 /*
  *********************************************************************************
@@ -615,7 +647,6 @@ int main (void)
     gpioTerminate();
     return 0;
 #endif
-    return 0;
 
   //cloturer Mosquitto
   mosquitto_disconnect(mosq);
