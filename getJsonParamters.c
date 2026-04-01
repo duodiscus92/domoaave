@@ -106,6 +106,26 @@ cJSON *getJsonTidx(cJSON *root, int tidx[], int tidxhp[], int tidxhc[], int tidx
    return host;
 }
 
+/* idx de du device d'affichage de la temperature cpu */
+extern cJSON *getJsonIdxCpuTemp (cJSON *root, int *idxCpuTemp)
+{
+   cJSON *clients, *host, *idx;
+   int port;
+   char hostname[32], cpx[8];
+
+   gethostname(hostname, sizeof(hostname));
+   fprintf(stderr, "%s\n", hostname);
+
+   /* descendre dans l'arborescence */
+   clients = cJSON_GetObjectItem(root, "clients");
+   if((host = cJSON_GetObjectItem(clients, hostname)) == NULL)
+      fprintf(stderr, "Imposssible de trouver %s dans l'arborescence JSON\n", hostname);
+   else {
+      *idxCpuTemp = cJSON_GetObjectItem(host, "cpuTempIdx")->valueint;
+   }
+   return host;
+}
+
 #ifdef STANDALONE
 int main(void)
 {

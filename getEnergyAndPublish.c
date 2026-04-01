@@ -18,6 +18,7 @@ static  int tidxHP[MAX_CP]={3, 7, 0, 0, 0, 0, 0, 0};
 static  int tidxHC[MAX_CP]={4, 6, 0, 0, 0, 0, 0, 0};
 static  int tidxHPeak[MAX_CP]={5, 8, 0, 0, 0, 0, 0, 0};
 static  int tidxCTot[MAX_CP]={9, 10, 0, 0, 0, 0, 0};
+static  int idxCpuTemp = 46;
 
 // dans ce tableau on cumule les couts
 static float tcouTotal[MAX_CP] = {0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; 
@@ -121,6 +122,9 @@ void printJsonConfig(void)
    for (int i = 0; i< MAX_CP; i++)
       fprintf(stderr, "%2d, ", tidxCTot[i]);
    fprintf(stderr, "\n");
+
+   fprintf(stderr, "printJsonConfig : Mon Idx cpuTemp: ");
+   fprintf(stderr, "%2d\n", idxCpuTemp);
 }
 
 
@@ -318,6 +322,12 @@ void initOrUpdateParametres(void)
       fprintf(stderr, "initOrUpdateParametres : Impossible de récuérer les idx de ce point de distribution\n");
       exit(1);
   }
+  // récupération de l'idx de la température cpu de ce point de distribution
+  if(getJsonIdxCpuTemp(root, &idxCpuTemp) == NULL) {
+      fprintf(stderr, "initOrUpdateParametres : Impossible de récuérer l' idx cpuTemp de ce point de distribution\n");
+      exit(1);
+  }
+
   // affichage (pour le debug)
   printJsonConfig();
 
@@ -386,6 +396,35 @@ static void initCompteurs(void)
     wiringPiISR (0,  INT_EDGE_FALLING, &isr_7) ;
     */
 #endif
+}
+
+/*
+ *********************************************************************************
+ * publier par mQTT la temperature cpu
+ *********************************************************************************
+*/
+static char *tcpuJson = "{\"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%4.1f\"}\n";
+static void getPublishCpuTemp(void)
+{
+   FILE *fp;
+   int temp0, temp1, temp2, tempD;
+   float temp;
+
+
+   if((fp = fopen("/sys/class/thermal/thermal_zone0/temp", "r")) == NULL)
+      fprintf(stderr, "getPublishCpuTemp - Impossible d'ouvrir le fichier : /sys/class/thermal/thermal_zone0/temp - erreur : %d\n", errno);
+   else {
+      fscanf(fp, "%d", &temp0);
+      printf("TCPU = %d\n", temp0);
+      temp1 = temp0/1000;
+      temp2 = temp0/100;
+      tempD = temp2 % temp1;
+      temp = temp1 + tempD/10.0;
+      sprintf(payload, tcpuJson, idxCpuTemp, temp);
+      printf(payload);
+      mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
+      fclose(fp);
+   }
 }
 
 /*
@@ -617,6 +656,7 @@ int main (void)
     // toutes les heures on envoie un message au serveur pour signaler qu'on fonctionne toujours
     // cela évite que les devices Domoticz passent en rouge si aucune impulsion n'est émise par les energie-metres
     // signale a Domoticz toutes les heures que toujours en vie
+    // on anvoie aussi la temperature cpu
     now = time(NULL);
     tm = localtime(&now);
     if (tm->tm_hour != last_hour) {
@@ -624,6 +664,8 @@ int main (void)
        fprintf(stderr, "\nmain : Hello World, toujours vivant !!\n");
        for (int i = 0; i < MAX_CP; i++)
           aLive(i);
+       // temperature cpu
+       getPublishCpuTemp();
     }
 
     // tout se passe dans cette fonction

@@ -67,7 +67,8 @@ extern char *getJsonIpDomoticz(cJSON *root);
 extern int getJsonPortMQTT(cJSON *root);
 // lire les idx Domoticz ratttachés au point de distribution dont le nom est hostnamme
 extern cJSON *getJsonTidx(cJSON *root, int tidx[], int tidxhp[], int tidxhc[], int tidxhpeak[], int tidxcout[]);
-
+// lire l'idx du device Domoticz cpuTemp ratttachés au point de distribution dont le nom est hostnamme
+extern cJSON *getJsonIdxCpuTemp (cJSON *root, int *idxCpuTemp); 
 // obtenir l'ip domoticz en fonction du  SSID Buno ou Montrouge
 //extern const char *get_domoticz_host(void);
 extern const char *getIpDomoticz(cJSON *root);
