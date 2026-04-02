@@ -1,0 +1,27 @@
+[Unit]
+Description=acquisition compteur Pollier et publication MMTQ
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/domoaave/getEnergyAndPublish.o
+WorkingDirectory=/opt/domoaave
+Restart=always
+RestartSec=5
+
+#Logs
+StandardOutput=journal
+#StandardError=journal
+StandardError=append:/home/jehrlich/domoaave/logs/domoaave.err.log
+
+
+#Securite
+#NoNewPrivileges=true
+#PrivateTmp=true
+#ProtectSystem=full
+#ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
+

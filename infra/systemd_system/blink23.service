@@ -1,0 +1,25 @@
+[Unit]
+Description=simulateur d'impulsions energimetre Polier sur GPIO23 (broche 33)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/domoaave/blink23.o
+WorkingDirectory=/opt/domoaave
+Restart=always
+RestartSec=5
+
+#Logs
+StandardOutput=journal
+StandardError=journal
+
+#Securite
+#NoNewPrivileges=true
+#PrivateTmp=true
+#ProtectSystem=full
+#ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
+
