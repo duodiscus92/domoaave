@@ -2,13 +2,13 @@
 id=aaveiot
 uuid=26eaa9b6-b6ee-4089-b56d-e63c62b04908
 type=wifi
-interface-name=wlan0
 timestamp=1772268654
 autoconnect=true
 autoconnect-priority=100
 
 [wifi]
 mode=infrastructure
+powersave=1
 ssid=....
 
 [wifi-security]

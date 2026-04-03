@@ -7,7 +7,7 @@ autoconnect-priority=10
 
 [wifi]
 mode=infrastructure
-powersave=2
+powersave=1
 ssid=....
 
 [wifi-security]

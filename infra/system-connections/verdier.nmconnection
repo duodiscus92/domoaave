@@ -8,6 +8,7 @@ autoconnect-priority=0
 
 [wifi]
 mode=infrastructure
+powersave=1
 ssid=SFR_62E8
 
 [wifi-security]
