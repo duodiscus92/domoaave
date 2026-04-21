@@ -1,0 +1,12 @@
+[Unit]
+Description=WiFi Watchdog
+After=network.target NetworkManager.service
+
+[Service]
+ExecStart=/opt/domoaave/wifi_watchdog.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

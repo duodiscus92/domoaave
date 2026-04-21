@@ -609,6 +609,25 @@ void  handleSignal(int sig)
 
 /*
  *********************************************************************************
+ *  miseà jour d'un fichier heartbeat pour le whatchdog detection de freeze
+ *********************************************************************************
+ */
+
+void update_heartbeat() {
+
+    FILE *f = fopen("/opt/domoaave/domoaave_client_heartbeat", "w");
+
+    if (!f) {
+	fprintf(stderr, "update_heartbeat - impossible ouvrir fichier heartbeat\n");
+	return;
+    }
+
+    fprintf(f, "%ld\n", time(NULL));
+    fclose(f);
+}
+
+/*
+ *********************************************************************************
  * main
  *********************************************************************************
  */
@@ -681,6 +700,9 @@ int main (void)
        fprintf(stderr, "\n");
        fflush(stderr);
     }
+
+    // on signale que l'appli n'est pas geléé
+    update_heartbeat();
 #if WIRINGPI == 1
     delay(2000);
 #endif

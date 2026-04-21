@@ -1,0 +1,13 @@
+#Activation propre d'un service
+
+sudo systemctl daemon-reload
+sudo systemctl enable <nom du service>
+sudo systemctl start <nom du service>
+
+#Verification
+
+systemctl status <nom du service>
+journalctl -u <nom du service> -f
+
+#NB : c'est normal que journal ne rende pas la main à cause de l'option -f (follow)
+# Faire CTRL-C pour sortir

@@ -1,0 +1,10 @@
+ /opt/domoaave/
+ ├── domoaave_client      # mon application
+ ├── watchdog_app.sh      # watchdog applicatif à installer dans /opt/domoaave
+ ├── config.env           # variables (optionnel)
+
+#Il y a trois niveaux de whatchdog:
+- redémarrage de l'appli en cas d'exit de celle-ci : fait dans le servicectl de l'appli
+- redamarrage de l'appli si elle ne repond plus : fait par ke script watchdog_app.sh
+- reboot de la carte si plus rien ne foncionne : fait sur le watchdog hardware du rpi zero
+

@@ -18,6 +18,11 @@ StandardOutput=journal
 StandardError=journal
 #StandardError=append:/home/jehrlich/domoaave/logs/domoaave.err.log
 
+
+#securite et robustesse
+StartLimitInterval=60
+StartLimitBurst=5
+
 #Securite
 NoNewPrivileges=true
 PrivateTmp=true

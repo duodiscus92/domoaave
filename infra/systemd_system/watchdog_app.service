@@ -1,0 +1,23 @@
+[Unit]
+Description=Domoaave Application Watchdog
+After=domoaave_client.service
+Requires=domoaave_client.service
+
+[Service]
+Type=simple
+ExecStart=/opt/domoaave/watchdog_app.sh
+WorkingDirectory=/opt/domoaave
+
+Restart=always
+RestartSec=5
+
+# Sécurité (évite les boucles trop rapides)
+StartLimitInterval=60
+StartLimitBurst=10
+
+# Logs dans journalctl uniquement (pas de fichier obligatoire)
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
