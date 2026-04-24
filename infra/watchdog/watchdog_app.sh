@@ -8,6 +8,10 @@
 
 #!/bin/bash
 
+SERVER_URL="http://XXXX:port/alert"
+API_KEY="XXX"
+DEVICE=$(hostname)
+
 APP_SERVICE="domoaave_client.service"
 HEARTBEAT_FILE="/opt/domoaave/domoaave_client_heartbeat"
 MAX_FAIL=3
@@ -39,19 +43,35 @@ check_heartbeat() {
     return 0
 }
 
+send_alert() {
+    MSG="$1"
+
+    curl -s -X POST "$SERVER_URL" \
+        -H "Content-Type: application/json" \
+        -H "X-API-KEY: $API_KEY" \
+        -d "{\"device\":\"$DEVICE\",\"message\":\"$MSG\"}" \
+        >/dev/null 2>&1
+}
+
+send_alert "Watchdog started"
 while true; do
 
     if check_service && check_heartbeat; then
         FAIL=0
     else
         ((FAIL++))
-        log "Service OK mais heartbeat KO ($FAIL)"
+        MSG="Service OK mais heartbeat KO ($FAIL)"
+        log "$MSG"
+        send_alert "$MSG"
 
+        send_alert "Redémarrage de $APP_SERVICE"
         systemctl restart "$APP_SERVICE"
     fi
 
     if [ $FAIL -ge $MAX_FAIL ]; then
-        log "Reboot système (freeze détecté)"
+        MSG="Reboot système (freeze détecté)"
+        log "$MSG"
+        send_alert "$MSG"
         reboot
     fi
 
