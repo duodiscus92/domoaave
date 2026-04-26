@@ -33,9 +33,9 @@ void send_alert(const char *device, const char *msg) {
     char cmd[1024];
 
     snprintf(cmd, sizeof(cmd),
-        "curl -s -X POST http://tinkerforge.ddns.net:6000/alert "
+        "curl -s -X POST http://url:port/alert "
         "-H \"Content-Type: application/json\" "
-        "-H \"X-API-KEY: eaead5583496c29cc554cf9b24aee266608a5c3af2e91838565b85f4d1ea76e1\" "
+        "-H \"X-API-KEY: xxxx\" "
         "-d '{\"device\":\"%s\",\"message\":\"%s\"}'",
         device, msg);
 

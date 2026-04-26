@@ -5,7 +5,7 @@
 # ==============================
 
 INTERFACE="wlan0"
-PROFILE="wifi_maison"        # nom du profil nmcli
+PROFILE="aaveiot"        # nom du profil nmcli
 PING_TARGET="8.8.8.8"
 MAX_FAIL=3
 LOGFILE="/var/log/wifi_watchdog.log"

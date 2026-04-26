@@ -1,7 +1,7 @@
 [Unit]
 Description=Domoaave Application Watchdog
-After=network.target
 After=domoaave_client.service
+#Requires=domoaave_client.service
 
 [Service]
 Type=simple
