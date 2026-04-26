@@ -1,0 +1,86 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <time.h>
+
+#define MAX_PC 8
+
+void escape_newlines(char *msg) {
+    char buffer[1024];
+    int j = 0;
+
+    for (int i = 0; msg[i] != '\0'; i++) {
+        if (msg[i] == '\n') {
+            buffer[j++] = '\\';
+            buffer[j++] = 'n';
+        } else {
+            buffer[j++] = msg[i];
+        }
+    }
+
+    buffer[j] = '\0';
+    strcpy(msg, buffer);
+}
+
+void send_alert(const char *device, const char *msg) {
+    char cmd[1024];
+
+    snprintf(cmd, sizeof(cmd),
+        "curl -s -X POST http://tinkerforge.ddns.net:6000/alert "
+        "-H \"Content-Type: application/json\" "
+        "-H \"X-API-KEY: eaead5583496c29cc554cf9b24aee266608a5c3af2e91838565b85f4d1ea76e1\" "
+        "-d '{\"device\":\"%s\",\"message\":\"%s\"}'",
+        device, msg);
+
+    system(cmd);
+}
+
+int main() {
+
+    float totalKwh[MAX_PC];
+    for (int i = 0; i < MAX_PC; i++) totalKwh[i] = -1;
+
+    FILE *f = fopen("/opt/domoaave/totalKwh.text", "r");
+    if (!f) {
+        perror("open");
+        return 1;
+    }
+
+    char line[128], key[32];
+    float value;
+
+    while (fgets(line, sizeof(line), f)) {
+        if (sscanf(line, "%[^=]=%f", key, &value) == 2) {
+            int pc;
+            if (sscanf(key, "PC%d", &pc) == 1 && pc >=1 && pc <= MAX_PC) {
+                totalKwh[pc-1] = value;
+            }
+        }
+    }
+
+    fclose(f);
+
+    char hostname[64];
+    gethostname(hostname, sizeof(hostname));
+
+    char date[32];
+    time_t now = time(NULL);
+    strftime(date, sizeof(date), "%d/%m/%Y", localtime(&now));
+
+    char msg[512];
+    snprintf(msg, sizeof(msg), "Le %s :\n", date);
+
+    for (int i = 0; i < MAX_PC; i++) {
+        if (totalKwh[i] != -1) {
+            char tmp[64];
+            snprintf(tmp, sizeof(tmp), "- PC%d : %.3f kWh\n", i+1, totalKwh[i] <0 ? 0.000 : totalKwh[i]);
+            strncat(msg, tmp, sizeof(msg)-strlen(msg)-1);
+        }
+    }
+
+    escape_newlines(msg);
+    send_alert(hostname, msg);
+
+    return 0;
+}

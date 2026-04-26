@@ -56,8 +56,12 @@
 // nombre max de compteurs d'énergie par points de distribution
 #define  MAX_CP	8
 
-//fichier contenant les couts totaux pour repartir correctement en cas de coupure secteur
+//fichiers contenant les couts totaux pour repartir correctement en cas de coupure secteur
 #define TOTAL_COST_PATH "totalCost.data"
+
+//fichier contenant les kWh  totaux pour repartir correctement en cas de coupure secteur (binaire et texte pour Telegram)
+#define TOTAL_KWH_BIN_PATH 	"/opt/domoaave/totalKwh.data"
+#define TOTAL_KWH_TXT_PATH 	"/opt/domoaave/totalKwh.text"
 
 // lecture d'un fichier json de paramètres
 extern char *readJson(const char *filename);

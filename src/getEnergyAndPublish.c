@@ -23,6 +23,9 @@ static  int idxCpuTemp = 46;
 // dans ce tableau on cumule les couts
 static float tcouTotal[MAX_CP] = {0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; 
 
+// dans ce tableau on cumule les kWh (pour  Telegram)
+static float kwhTotal[MAX_CP] = {-1, -1, -1, -1, -1, -1, -1, -1};
+
 // buffer pour les messages json
 static  char payload[500];
 
@@ -439,6 +442,8 @@ static void getPublishEnergy(int compteur)
 
    // publication energie gobale
    sprintf(payload, "{ \"idx\" : %d, \"nvalue\" : 0, \"svalue\" : \"%d\" }\n",  tidx[compteur], 1);
+   // cumuler les kwh pour envoi via Telegram
+   //if (tidx[compteur] != 0) kwhTotal[compteur]++;
    //mosquitto_publish(mosq, NULL, "domoticz/in", strlen(payload), payload, 0, false);
    mqttPublish(tidx[compteur], "domoticz/in",payload);
    if((slice = hourSlice()) == hp){
@@ -460,6 +465,59 @@ static void getPublishEnergy(int compteur)
    //mqttPublish("domoticz/in",payload);
 
 }
+
+/*
+ *********************************************************************************
+ * mettre à jour les kwh totaux et le persister
+ * 
+ *********************************************************************************
+ */
+static void getPersistTotalKwh(int compteur)
+{
+   FILE *fp;
+   int fn;
+
+   // persister kwh total dans un fichier binaire
+   if((fn = open(TOTAL_KWH_BIN_PATH, O_RDWR | O_CREAT | O_EXCL, 0644)) == -1){
+      if(errno==EEXIST){
+         if((fn = open(TOTAL_KWH_BIN_PATH, O_RDWR)) == -1){
+            //fprintf(stderr, "getPersistTotalKwh : Impossible d'ouvrir ou creer fichier totalKwh.data\n");
+            exit(1);
+         }
+         else {
+            //fprintf(stderr, "getPersistTotalKwh : Le fichier  totalKwh.data existe déja : on le charge en mémoire\n");
+            // cout du kWh HT (compte tenu du la saison et de la tranche horaire
+            read(fn, kwhTotal, sizeof(kwhTotal));
+            //for(int i=0; i<MAX_CP;i++)
+               //fprintf(stderr, "getPersistTotalKwh : Kwh(%d) = %8.4f\n", i+1, totalKwh.data[i]);
+         }
+      }
+   }
+   else{
+      // le fichier n'existait pas il a été crée : il est  initialisé avec valeurs par defaut
+      fprintf(stderr, "getPersistTotalKwh : Initialisation du fichier totalKwh.data\n");
+      write (fn, kwhTotal, sizeof(kwhTotal));
+   }
+
+   if (tidx[compteur] !=0) kwhTotal[compteur]++;
+
+   // on se replace au début du fichier
+   lseek(fn, 0, SEEK_SET);
+   write(fn, kwhTotal, sizeof(kwhTotal));
+   close(fn);
+
+   // enregistrer une version texte pour Telegram et aussi pour une lecture facile (en debug)
+   if ((fp = fopen(TOTAL_KWH_TXT_PATH, "w")) == NULL) {
+       fprintf(stderr, "getPersistTotalKwh : impossible ouvrir/creer fichier totalKwh.text\n");
+       exit(1);
+   }
+
+   for(int i=0; i< MAX_CP; i++)
+       fprintf(fp, "PC%d=%.3f\n", i+1,  kwhTotal[i]/1000.0);
+
+   fclose(fp);
+}
+
 /*
  *********************************************************************************
  * mettre à jour le coût total, le publier et le persister
@@ -527,6 +585,7 @@ static void processCompteurs(void)
             // 👉 ICI : ta logique métier
             getPublishEnergy(i);
             getPublishPersistTotalCost(i);
+	    getPersistTotalKwh(i);
         }
     }
 }
