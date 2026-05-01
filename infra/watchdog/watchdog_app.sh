@@ -8,8 +8,8 @@
 
 #!/bin/bash
 
-SERVER_URL="http://XXXX:port/alert"
-API_KEY="XXX"
+SERVER_URL="http://url:port/alert"
+API_KEY="xxx"
 DEVICE=$(hostname)
 
 APP_SERVICE="domoaave_client.service"
@@ -75,5 +75,5 @@ while true; do
         reboot
     fi
 
-    sleep 15
+    sleep 30
 done
