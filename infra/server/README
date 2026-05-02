@@ -1,0 +1,6 @@
+# Ce répertoire contient le code du serveur
+# de notifications situé sur une machine distante
+# en l'occurence il s'agit de l'Optiplex
+# mais tout autrer machine ferait l'affaire.
+# LE répertoire contient aussi le codfe du service
+# nécessaire pour lancer le serveur. 
