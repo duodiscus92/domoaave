@@ -78,7 +78,7 @@ void send_data_telegram(const char *device, const char *msg)
         "-d '{\"device\":\"%s\",\"message\":\"%s\"}'",
         device, msg);*/
     snprintf(cmd, sizeof(cmd),
-        "curl -s -X POST %s:%s/alert "
+        "curl -k -s -X POST %s:%s/alert "
         "-H \"Content-Type: application/json\" "
         "-H \"X-API-KEY: %s\" "
         "-d '{\"device\":\"%s\",\"message\":\"%s\"}'",
@@ -99,7 +99,7 @@ void send_data_csv(const char *device, const char *line)
         "--data-urlencode \"line=%s\"",
         line);*/
     snprintf(cmd, sizeof(cmd),
-        "curl -s -X POST %s:%s/conso "
+        "curl -k -s -X POST %s:%s/conso "
         "-H \"X-API-KEY: %s\" "
         "--data-urlencode \"line=%s\"",
         g_url, g_port, g_apikey,
