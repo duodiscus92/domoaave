@@ -5,15 +5,14 @@ import os
 from email.mime.text import MIMEText
 from datetime import datetime
 
-#API_KEY = "CHANGE_ME_123456"
+#CONFIG
 API_KEY = os.environ.get("API_KEY")
-app = Flask(__name__)
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+CHAT_ID = os.environ.get("CHAT_ID")
+EMAIL_TO = os.environ.get("EMAIL_TO")
 CSV_FILE = "global_conso.csv"
 
-# CONFIG
-TELEGRAM_TOKEN = "8791098770:AAGc40oQvNqLeCimkyrH6eAR5bdwFRJUL14"
-CHAT_ID = "8794909789"
-EMAIL_TO = "jacques.ehrlich@orange.fr"
+app = Flask(__name__)
 
 # --------------------------------------------------
 # Initialisation du fichier CSV (si absent)
@@ -22,7 +21,7 @@ def init_csv():
     if not os.path.exists(CSV_FILE):
         with open(CSV_FILE, "w") as f:
             f.write("sep=;\n")
-            f.write("date;site;PC1;PC2;PC3;PC4;PC5;PC6;PC7;PC8\n")
+            f.write("date;heure;site;PC1;PC2;PC3;PC4;PC5;PC6;PC7;PC8\n")
 
 def send_telegram(msg):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -80,5 +79,10 @@ def alert():
 # MAIN
 # --------------------------------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=6000)
-
+#    app.run(host="0.0.0.0", port=6000)
+    app.run(
+       host="0.0.0.0", 
+       port=6000,
+       ssl_context=('/home/jehrlich/domoaave/certs/cert.pem', 
+                    '/home/jehrlich/domoaave/certs/key.pem')
+    )

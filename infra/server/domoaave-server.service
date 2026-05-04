@@ -5,7 +5,10 @@ After=network.target
 [Service]
 User=jehrlich
 WorkingDirectory=/home/jehrlich/domoaave
-Environment="API_KEY=xxx"
+Environment="API_KEY=kkk"
+Environment="TELEGRAM_TOKEN=ttt"
+Environment="CHAT_ID=iii"
+Environment="EMAIL_TO=mmm"
 ExecStart=/home/jehrlich/domoaave/venv/bin/gunicorn -w 2 -b 0.0.0.0:6000 server:app
 Restart=always
 RestartSec=3
