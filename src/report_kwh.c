@@ -9,6 +9,7 @@
 #define MONTH_FILE "/opt/domoaave/monthKwh.ref"
 #define CONFIG_FILE "/opt/domoaave/report_kwh.ini"
 
+static char g_cert[128];
 static char g_url[128];
 static char g_port[16];
 static char g_apikey[128];
@@ -16,7 +17,7 @@ static char g_apikey[128];
 // --------------------------------------------------
 // charge la config (url, port, aPI key
 // --------------------------------------------------
-void load_config(const char *path, char *url, char *port, char *apikey)
+void load_config(const char *path, char *cert, char *url, char *port, char *apikey)
 {
     FILE *f = fopen(path, "r");
     if (!f) {
@@ -29,7 +30,9 @@ void load_config(const char *path, char *url, char *port, char *apikey)
     while (fgets(line, sizeof(line), f)) {
         if (sscanf(line, "%[^=]=%s", key, value) == 2) {
 
-            if (strcmp(key, "URL") == 0)
+	    if (strcmp(key, "CERT") == 0)
+                strcpy(cert, value);
+	    else if (strcmp(key, "URL") == 0)
                 strcpy(url, value);
 
             else if (strcmp(key, "PORT") == 0)
@@ -78,11 +81,11 @@ void send_data_telegram(const char *device, const char *msg)
         "-d '{\"device\":\"%s\",\"message\":\"%s\"}'",
         device, msg);*/
     snprintf(cmd, sizeof(cmd),
-        "curl -k -s -X POST %s:%s/alert "
+        "curl  -s --cacert %s -X POST %s:%s/alert "
         "-H \"Content-Type: application/json\" "
         "-H \"X-API-KEY: %s\" "
         "-d '{\"device\":\"%s\",\"message\":\"%s\"}'",
-        g_url, g_port, g_apikey,
+        g_cert, g_url, g_port, g_apikey,
         device, msg);
     system(cmd);
 }
@@ -99,10 +102,10 @@ void send_data_csv(const char *device, const char *line)
         "--data-urlencode \"line=%s\"",
         line);*/
     snprintf(cmd, sizeof(cmd),
-        "curl -k -s -X POST %s:%s/conso "
+        "curl -s --cacert %s -X POST %s:%s/conso "
         "-H \"X-API-KEY: %s\" "
         "--data-urlencode \"line=%s\"",
-        g_url, g_port, g_apikey,
+        g_cert, g_url, g_port, g_apikey,
         line);
     system(cmd); 
 }
@@ -207,7 +210,7 @@ int main() {
     int refMonth = 0, refYear = 0;
 
     // chargement config
-    load_config(CONFIG_FILE, g_url, g_port, g_apikey); 
+    load_config(CONFIG_FILE, g_cert, g_url, g_port, g_apikey); 
 
     // 1. Lecture fichiers
     load_file("/opt/domoaave/totalKwh.text", totalKwh);
