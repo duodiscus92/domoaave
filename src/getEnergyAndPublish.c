@@ -1,6 +1,6 @@
 #include "domoaave.h"
 
-#define CURL		1
+#define CURL		0
 #define WIRINGPI 	0
 #define PIGPIO 		1-WIRINGPI
 #define CONFIG_FILE "/opt/domoaave/report_kwh.ini"
