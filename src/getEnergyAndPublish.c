@@ -1,6 +1,6 @@
 #include "domoaave.h"
 
-#define CURL		0
+#define CURL		1
 #define WIRINGPI 	0
 #define PIGPIO 		1-WIRINGPI
 #define CONFIG_FILE "/opt/domoaave/report_kwh.ini"
@@ -690,13 +690,21 @@ void mqttPublish(const int idx, const char *topic, const char *msg)
     }
 
     snprintf(cmd, sizeof(cmd),
-        "curl  -s --cacert %s -X POST %s:%s/broker "
-        "-H \"Content-Type: application/json\" "
-        "-H \"X-API-KEY: %s\" "
-        "-d '{\"topic\":\"domoticz/in\",\"payload\":%s}'",
-        g_cert, g_url, g_port, g_apikey,
-        msg);
-    // une petit printf pour le debug
+      "curl -s -f "
+      "--connect-timeout 5 "
+      "--max-time 10 "
+      "--cacert %s "
+      "-X POST %s:%s/broker "
+      "-H \"Content-Type: application/json\" "
+      "-H \"X-API-KEY: %s\" "
+      "-d '{\"topic\":\"domoticz/in\",\"payload\":%s}'",
+      g_cert,
+      g_url,
+      g_port,
+      g_apikey,
+      msg);
+
+    // un petit printf pour le debug
     printf("%s\n", cmd);
     system(cmd);
 
