@@ -1,13 +1,20 @@
 #include "domoaave.h"
 
+#define CURL		0
 #define WIRINGPI 	0
 #define PIGPIO 		1-WIRINGPI
+#define CONFIG_FILE "/opt/domoaave/report_kwh.ini"
 
 #if PIGPIO == 1
 #include <pigpio.h>
 #endif
 
 extern void mqttPublish(const int idx, const char *topic, const char *msg);
+
+static char g_cert[128];
+static char g_url[128];
+static char g_port[16];
+static char g_apikey[128];
 
 //iadresse IP du serveur Domotciz
 const char *IpDomoticz;
@@ -55,6 +62,39 @@ static int nb_compteurs = 0;
 unsigned char tgpio[] = {11, 9, 10, 22, 17, 4, 99, 5};
 unsigned char tindex[] = {0, 1, 2, 3, 4, 5, 6, 7};
 #endif
+
+// --------------------------------------------------
+// charge la config (url, port, aPI key
+// --------------------------------------------------
+void load_config(const char *path, char *cert, char *url, char *port, char *apikey)
+{
+    FILE *f = fopen(path, "r");
+    if (!f) {
+        printf("Erreur ouverture config\n");
+        return;
+    }
+
+    char line[256], key[64], value[128];
+
+    while (fgets(line, sizeof(line), f)) {
+        if (sscanf(line, "%[^=]=%s", key, value) == 2) {
+
+	    if (strcmp(key, "CERT") == 0)
+                strcpy(cert, value);
+	    else if (strcmp(key, "URL") == 0)
+                strcpy(url, value);
+
+            else if (strcmp(key, "PORT") == 0)
+                strcpy(port, value);
+
+            else if (strcmp(key, "API_KEY") == 0)
+                strcpy(apikey, value);
+        }
+    }
+
+    fclose(f);
+}
+
 
 /*
  *********************************************************************************
@@ -635,11 +675,32 @@ static void initMosquitto(void)
 
 /*
  *********************************************************************************
- * publication par  MQTT
+ * publication par curl vers serveur relais MQTT externe au site
  *********************************************************************************
  */
 void mqttPublish(const int idx, const char *topic, const char *msg)
 {
+
+#if CURL == 1
+    char cmd[1024];
+    // si idx == 0 c'est pas normal, on ne publie pas
+    if(idx == 0) {
+        fprintf(stderr,"mqttPublish : erreur idx = %d ==> message non publié\n",idx);
+        return;
+    }
+
+    snprintf(cmd, sizeof(cmd),
+        "curl  -s --cacert %s -X POST %s:%s/broker "
+        "-H \"Content-Type: application/json\" "
+        "-H \"X-API-KEY: %s\" "
+        "-d '{\"topic\":\"domoticz/in\",\"payload\":%s}'",
+        g_cert, g_url, g_port, g_apikey,
+        msg);
+    // une petit printf pour le debug
+    printf("%s\n", cmd);
+    system(cmd);
+
+#else
     int rc;
 
     // si idx == 0 c'est pas normal, on ne publie pas
@@ -653,7 +714,9 @@ void mqttPublish(const int idx, const char *topic, const char *msg)
         fprintf(stderr,"mqttPublish : erreur %d\n",rc);
         mosquitto_reconnect(mosq);
     }
-} 
+#endif
+
+}
 
 /*
  *********************************************************************************
@@ -709,7 +772,10 @@ int main (void)
   sigaction(SIGQUIT, &sa, NULL);
 
 
-// initialisation des paramètres Json
+  // chargement config pour curl 
+  load_config(CONFIG_FILE, g_cert, g_url, g_port, g_apikey);
+
+  // initialisation des paramètres Json
   // cette fonction devra évolurr car actuellement trop de paramètres sont en dur
   initOrUpdateParametres();
 

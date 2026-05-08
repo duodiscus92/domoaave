@@ -7,8 +7,9 @@
 #cette version détecte les frezze : l'appli tourne mais elle est bloquée
 
 #!/bin/bash
-source /opt/domoaave/report_kwh.ini
 
+SERVER_URL="http://url:port/alert"
+API_KEY="xxx"
 DEVICE=$(hostname)
 
 APP_SERVICE="domoaave_client.service"
@@ -45,7 +46,7 @@ check_heartbeat() {
 send_alert() {
     MSG="$1"
 
-    curl -s --cacert "$CERT" POST "$URL:$PORT/alert" \
+    curl -s -X POST "$SERVER_URL" \
         -H "Content-Type: application/json" \
         -H "X-API-KEY: $API_KEY" \
         -d "{\"device\":\"$DEVICE\",\"message\":\"$MSG\"}" \
