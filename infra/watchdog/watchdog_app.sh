@@ -13,9 +13,9 @@ DEVICE=$(hostname)
 
 APP_SERVICE="domoaave_client.service"
 HEARTBEAT_FILE="/opt/domoaave/domoaave_client_heartbeat"
-MAX_FAIL=3
+MAX_FAIL=4
 FAIL=0
-TIMEOUT=30   # secondes max sans heartbeat
+TIMEOUT=180   # secondes max sans heartbeat
 
 log() {
     logger -t watchdog_app "$1"
@@ -54,18 +54,37 @@ send_alert() {
 
 send_alert "Watchdog started"
 while true; do
+#:<<'COMMENT'
+	if ! check_service; then
 
-    if check_service && check_heartbeat; then
-        FAIL=0
-    else
-        ((FAIL++))
-        MSG="Service OK mais heartbeat KO ($FAIL)"
-        log "$MSG"
-        send_alert "$MSG"
+	    ((FAIL++))
 
-        send_alert "Redémarrage de $APP_SERVICE"
-        systemctl restart "$APP_SERVICE"
-    fi
+	    if [ $FAIL -ge 2 ]; then
+	               MSG="Service KO ($FAIL)"
+	               log "$MSG"
+	               send_alert "$MSG"
+	               send_alert "Redémarrage de $APP_SERVICE"
+	        systemctl restart "$APP_SERVICE"
+	    fi
+
+	elif ! check_heartbeat; then
+#COMMENT
+#	if ! check_heartbeat; then
+
+	    ((FAIL++))
+
+	    if [ $FAIL -ge 2 ]; then
+	               MSG="Heartbeat KO ($FAIL)"
+	               log "$MSG"
+	               send_alert "$MSG"
+	               send_alert "Redémarrage de $APP_SERVICE"
+	        systemctl restart "$APP_SERVICE"
+	    fi
+
+	else
+	    FAIL=0
+	fi
+	ֶֶֶ
 
     if [ $FAIL -ge $MAX_FAIL ]; then
         MSG="Reboot système (freeze détecté)"

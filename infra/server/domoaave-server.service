@@ -5,11 +5,16 @@ After=network.target
 [Service]
 User=jehrlich
 WorkingDirectory=/home/jehrlich/domoaave
-Environment="API_KEY=kkk"
-Environment="TELEGRAM_TOKEN=ttt"
-Environment="CHAT_ID=iii"
-Environment="EMAIL_TO=mmm"
-ExecStart=/home/jehrlich/domoaave/venv/bin/gunicorn -w 2 -b 0.0.0.0:6000 server:app
+Environment="API_KEY=xxxxx"
+Environment="TELEGRAM_TOKEN=xxxx"
+Environment="CHAT_ID=xxxxxx"
+Environment="EMAIL_TO=xxxxxx"
+ExecStart=/home/jehrlich/domoaave/venv/bin/gunicorn\
+      -w 2\
+      -b 0.0.0.0:6000\
+      --certfile /home/jehrlich/domoaave/certs/cert.pem \
+      --keyfile /home/jehrlich/domoaave/certs/key.pem \
+      server:app
 Restart=always
 RestartSec=3
 
