@@ -1,5 +1,5 @@
 [Unit]
-Description=simulateur d'impulsions energimetre Polier sur GPIO23 (broche 33)
+Description=simulateur d'impulsions energimetre Polier sur GPIO13 (broche 33)
 After=network.target
 Wants=network.target
 
