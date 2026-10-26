@@ -5,7 +5,7 @@ Wants=network.target
 
 [Service]
 Type=simple
-ExecStart=/opt/domoaave/blink23.o
+ExecStart=/opt/domoaave/blink23
 WorkingDirectory=/opt/domoaave
 Restart=always
 RestartSec=5

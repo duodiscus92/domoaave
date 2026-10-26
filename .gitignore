@@ -8,3 +8,6 @@ build/
 
 # Runtime data
 *.data
+
+# Simulateur compilé
+/simulateurs/blink23

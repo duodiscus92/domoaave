@@ -23,3 +23,15 @@ install(TARGETS domoaave_client
 
 #include
 target_include_directories(domoaave_client PRIVATE include)
+
+# Simulateur d'impulsions GPIO pour les tests
+add_executable(blink23
+    simulateurs/blink23.c
+)
+
+target_link_libraries(blink23
+    gpiod
+)
+
+install(TARGETS blink23
+        DESTINATION /opt/domoaave)

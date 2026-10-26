@@ -10,7 +10,7 @@
 #include <stdbool.h>
 
 // pour WiringPi
-#include <wiringPi.h>
+//#include <wiringPi.h>
 // pour MQTT
 #include <mosquitto.h>
 // pour cjson
