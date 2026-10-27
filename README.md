@@ -16,3 +16,15 @@ Installer les outils et bibliothèques de développement nécessaires :
 ```bash
 sudo apt update
 sudo apt install build-essential cmake libmosquitto-dev libpigpio-dev libcjson-dev libgpiod-dev
+```
+## 3. Compilation et installation
+
+Depuis la racine du dépôt :
+
+```bash
+cmake -S . -B build
+cmake --build build -j2
+sudo cmake --install build
+```
+
+Les exécutables et le script de synchronisation sont installés dans `/opt/domoaave/`.

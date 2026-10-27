@@ -35,3 +35,7 @@ target_link_libraries(blink23
 
 install(TARGETS blink23
         DESTINATION /opt/domoaave)
+
+# Synchronisation automatique de la configuration
+install(PROGRAMS scripts/update_config.sh
+        DESTINATION /opt/domoaave)

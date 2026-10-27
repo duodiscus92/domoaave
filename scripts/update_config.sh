@@ -1,12 +1,38 @@
 #!/bin/bash
 
-# ce script est appelé par cron vers minuit
+# Synchronisation de la configuration depuis le serveur du site.
 
-# Charger config locale
-source /opt/domoaave/config_local.sh
+set -euo pipefail
 
-#SERVER="jehrlich@192.168.1.44"
-#KEY="/home/jehrlich/.ssh/id_ed25519_domoticz"
-#SRC="/home/jehrlich/domoaave/config/"
-#DST="/opt/domoaave/"
-rsync -avz -e "ssh -i $KEY" ${SERVER}:${SRC} "$DST"
+CONFIG="/opt/domoaave/config_local.sh"
+
+if [[ ! -r "$CONFIG" ]]; then
+    echo "ERREUR : configuration absente ou illisible : $CONFIG" >&2
+    exit 1
+fi
+
+source "$CONFIG"
+
+SSID=$(nmcli -t -f IN-USE,SSID dev wifi list |
+       awk -F: '$1=="*" {sub(/^\*:/, ""); print; exit}')
+
+if [[ -z "$SSID" ]]; then
+    echo "ERREUR : aucun SSID Wi-Fi actif détecté." >&2
+    exit 1
+fi
+
+echo "SSID détecté : $SSID"
+
+SERVER_IP="${SERVERS_BY_SSID[$SSID]:-}"
+
+if [[ -z "$SERVER_IP" ]]; then
+    echo "ERREUR : aucun serveur associé au SSID détecté." >&2
+    echo "Synchronisation annulée." >&2
+    exit 1
+fi
+
+SERVER="${REMOTE_USER}@${SERVER_IP}"
+
+echo "Serveur sélectionné : $SERVER"
+
+rsync -avz -e "ssh -i $KEY" "${SERVER}:${SRC}" "$DST"
